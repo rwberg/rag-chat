@@ -19,22 +19,22 @@
   <div id="output"></div>
 
   <script>
-    document.getElementById("chatForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const query = document.getElementById("query").value;
-      const file = document.getElementById("fileInput").files[0];
-      const formData = new FormData();
-      formData.append("query", query);
-      if (file) formData.append("file", file);
+  document.getElementById("chatForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-      const response = await fetch("https://supren.app.n8n.cloud/webhook/9cf09322-e285-491d-b667-3e0c16bf33c0", {
-        method: "POST",
-        body: formData
-      });
+    const query = document.getElementById("query").value;
 
-      const data = await response.json();
-      document.getElementById("output").innerText = data.answer || "No response.";
+    const response = await fetch("https://supren.app.n8n.cloud/webhook/9cf09322-e285-491d-b667-3e0c16bf33c0", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ query })
     });
-  </script>
+
+    const data = await response.json();
+    document.getElementById("output").innerText = data.answer || "No response.";
+  });
+</script>
 </body>
 </html>

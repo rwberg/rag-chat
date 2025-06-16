@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Assistant</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; }
+    textarea, input { width: 100%; margin: 0.5em 0; }
+    button { padding: 0.5em 1em; }
+    #output { margin-top: 1em; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Ask a Question + Upload a File</h2>
+  <form id="chatForm">
+    <textarea id="query" placeholder="Type your question here..."></textarea>
+    <input type="file" id="fileInput">
+    <button type="submit">Submit</button>
+  </form>
+  <div id="output"></div>
+
+  <script>
+    document.getElementById("chatForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const query = document.getElementById("query").value;
+      const file = document.getElementById("fileInput").files[0];
+      const formData = new FormData();
+      formData.append("query", query);
+      if (file) formData.append("file", file);
+
+      const response = await fetch("https://your-n8n-webhook-url.com/webhook/ai", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      document.getElementById("output").innerText = data.answer || "No response.";
+    });
+  </script>
+</body>
+</html>

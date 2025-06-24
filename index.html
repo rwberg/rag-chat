@@ -68,7 +68,7 @@
 
       formData.append("question", question);
       if (fileInput.files.length > 0) {
-        formData.append("file", fileInput.files[0]); // Key must be "file"
+        formData.append("data", fileInput.files[0]); // Key must be "file"
       }
 
       try {

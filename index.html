@@ -1,49 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>AI Assistant</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Interrogatory Assistant</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; }
-    textarea, input { width: 100%; margin: 0.5em 0; }
-    button { padding: 0.5em 1em; }
-    #output { margin-top: 1em; white-space: pre-wrap; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      max-width: 700px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+
+    input[type="file"],
+    textarea {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    #response {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
-  <h2>Ask a Question + Upload a PDF</h2>
-  <form id="chatForm">
-    <textarea id="query" placeholder="Type your question here..."></textarea>
-    <input type="file" id="fileInput" accept=".pdf">
+
+  <h1>AI Interrogatory Assistant</h1>
+
+  <form id="query-form">
+    <label for="question">Enter your question:</label>
+    <textarea id="question" name="question" rows="4" required></textarea>
+
+    <label for="file">Attach a PDF (optional):</label>
+    <input type="file" id="file" name="file" accept=".pdf" />
+
     <button type="submit">Submit</button>
   </form>
-  <div id="output"></div>
+
+  <div id="response"></div>
 
   <script>
-    document.getElementById("chatForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
+    const form = document.getElementById("query-form");
+    const responseBox = document.getElementById("response");
 
-      const query = document.getElementById("query").value;
-      const fileInput = document.getElementById("fileInput").files[0];
-
-      if (!fileInput) {
-        document.getElementById("output").innerText = "Please upload a PDF file.";
-        return;
-      }
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      responseBox.textContent = "Processing...";
 
       const formData = new FormData();
-      formData.append("query", query);
-      formData.append("file", fileInput);
+      const question = document.getElementById("question").value;
+      const fileInput = document.getElementById("file");
+
+      formData.append("question", question);
+      if (fileInput.files.length > 0) {
+        formData.append("file", fileInput.files[0]); // Key must be "file"
+      }
 
       try {
-        const response = await fetch("https://supren.app.n8n.cloud/webhook/cb4055ac-c742-49d6-8b99-6409f1ece7d4", {
+        const res = await fetch("https://supren.app.n8n.cloud/webhook/cb4055ac-c742-49d6-8b99-6409f1ece7d4", {
           method: "POST",
-          body: formData
+          body: formData,
         });
 
-        const data = await response.json();
-        document.getElementById("output").innerText = data.answer || "No response.";
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        responseBox.textContent = data.response || JSON.stringify(data, null, 2);
       } catch (err) {
-        document.getElementById("output").innerText = "Error: " + err.message;
+        responseBox.textContent = "Error: " + err.message;
       }
     });
   </script>

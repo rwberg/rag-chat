@@ -68,7 +68,7 @@
 
       formData.append("question", question);
       if (fileInput.files.length > 0) {
-        formData.append("data", fileInput.files[0]); // Key must be "file"
+        formData.append("data", fileInput.files[0]);
       }
 
       try {
@@ -82,7 +82,19 @@
         }
 
         const data = await res.json();
-        responseBox.textContent = data.response || JSON.stringify(data, null, 2);
+        const rawAnswer = data.response || data.answer || JSON.stringify(data, null, 2);
+
+        // Clean up and format the response
+        const cleaned = rawAnswer
+          .replace(/^["{]*answer["{]*[:]*\s*=?/, '') // Remove leading "answer": = if present
+          .replace(/\\"/g, '"') // Unescape double quotes
+          .replace(/\\n/g, '\n') // Convert literal \n to actual newlines
+          .replace(/\\t/g, '    ') // Convert \t to spaces
+          .replace(/^"|"$/g, '') // Remove leading/trailing quotes
+          .trim();
+
+        // Display as formatted HTML
+        responseBox.innerHTML = `<pre>${cleaned}</pre>`;
       } catch (err) {
         responseBox.textContent = "Error: " + err.message;
       }

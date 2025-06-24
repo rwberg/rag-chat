@@ -8,7 +8,7 @@
     body {
       font-family: Arial, sans-serif;
       margin: 40px;
-      max-width: 700px;
+      max-width: 800px;
     }
 
     label {
@@ -31,10 +31,15 @@
 
     #response {
       margin-top: 30px;
-      padding: 15px;
-      background-color: #f4f4f4;
-      border: 1px solid #ccc;
-      white-space: pre-wrap;
+      padding: 0;
+      border: none;
+      background-color: transparent;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    #response p {
+      margin-bottom: 1em;
     }
   </style>
 </head>
@@ -60,7 +65,7 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      responseBox.textContent = "Processing...";
+      responseBox.innerHTML = "<p><em>Processing...</em></p>";
 
       const formData = new FormData();
       const question = document.getElementById("question").value;
@@ -84,21 +89,24 @@
         const data = await res.json();
         const rawAnswer = data.response || data.answer || JSON.stringify(data, null, 2);
 
-        // Clean up and format the response
+        // Clean and format
         const cleaned = rawAnswer
-          .replace(/^["{]*answer["{]*[:]*\s*=?/, '') // Remove leading "answer": = if present
-          .replace(/\\"/g, '"') // Unescape double quotes
-          .replace(/\\n/g, '\n') // Convert literal \n to actual newlines
-          .replace(/\\t/g, '    ') // Convert \t to spaces
-          .replace(/^"|"$/g, '') // Remove leading/trailing quotes
+          .replace(/^["{]*answer["{]*[:]*\s*=?/, '')
+          .replace(/\\"/g, '"')
+          .replace(/\\n/g, '\n')
+          .replace(/\\t/g, '    ')
+          .replace(/^"|"$/g, '')
           .trim();
 
-        // Display as formatted HTML
-        responseBox.innerHTML = `<pre>${cleaned}</pre>`;
+        // Split into paragraphs by newlines
+        const paragraphs = cleaned.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+
+        responseBox.innerHTML = paragraphs;
       } catch (err) {
-        responseBox.textContent = "Error: " + err.message;
+        responseBox.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
       }
     });
   </script>
 </body>
 </html>
+

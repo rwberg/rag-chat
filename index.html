@@ -87,7 +87,7 @@
         }
 
         const data = await res.json();
-        const rawAnswer = data.response || data.answer || JSON.stringify(data, null, 2);
+        const rawAnswer = data[0]?.response || data.response || data.answer || JSON.stringify(data, null, 2);
 
         // Clean and format
         const cleaned = rawAnswer

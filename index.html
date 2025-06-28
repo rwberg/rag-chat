@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PK Chatbot Prototype — Conversational</title>
+
+  <style>
+    :root  { --user:#0b5cff; --bot:#00a97f; }
+    *      { box-sizing:border-box; }
+    body   { font-family:Arial,Helvetica,sans-serif; margin:40px auto; max-width:800px; }
+    h1     { margin-top:0; }
+
+    #chat-window        { border:1px solid #ddd; border-radius:8px; padding:20px; height:400px; overflow-y:auto; }
+    .bubble             { max-width:80%; padding:12px 16px; border-radius:16px; line-height:1.5; margin:6px 0; white-space:pre-wrap; }
+    .user               { margin-left:auto; background:var(--user);  color:#fff; border-bottom-right-radius:4px; }
+    .assistant          { margin-right:auto; background:var(--bot);  color:#fff; border-bottom-left-radius:4px; }
+
+    form                { margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+    textarea            { width:100%; resize:vertical; min-height:60px; padding:8px; }
+    input[type=file]    { width:100%; }
+    button              { width:140px; padding:10px; font-size:15px; }
+
+    /* Markdown inside bubbles */
+    .bubble p           { margin:0 0 1em 0; }
+    .bubble ul, .bubble ol { margin:0 0 1em 1.2em; }
+    .bubble strong      { font-weight:700; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.1/dist/purify.min.js"></script>
+</head>
+
+<body>
+ <!-- <h1>Chatbot Prototype</h1> -->
+
+  <div id="chat-window"></div>
+
+  <form id="chat-form">
+    <label for="question"><strong>Enter your question:</strong></label>
+    <textarea id="question" placeholder="Type your message …" required></textarea>
+
+    <label for="file"><strong>Attach a PDF (optional):</strong></label>
+    <input type="file" id="file" accept=".pdf" />
+
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    // ---------- 1. Conversation state ----------
+    const ENDPOINT = "https://supren.app.n8n.cloud/webhook/e161af65-621c-417f-81db-03f5305779a1";
+
+    const chatWindow = document.getElementById("chat-window");
+    const textInput  = document.getElementById("question");
+    const fileInput  = document.getElementById("file");
+    const form       = document.getElementById("chat-form");
+
+    // keep a persistent session id per browser tab
+    let sessionId = sessionStorage.getItem("pkSessionId");
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      sessionStorage.setItem("pkSessionId", sessionId);
+    }
+
+    // conversation memory (in RAM for this tab; server has permanent copy)
+    let messages = [];   // each: { role:'user'|'assistant', text:'...' }
+
+    // ---------- 2. Helpers ----------
+    function appendBubble(role, rawMarkdown){
+      const div   = document.createElement("div");
+      div.className = `bubble ${role}`;
+      const cleanHTML = DOMPurify.sanitize(marked.parse(rawMarkdown));
+      div.innerHTML   = cleanHTML;
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function resetFileInput(){ fileInput.value = ""; }
+
+    // ---------- 3. Send handler ----------
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const userText = textInput.value.trim();
+      if (!userText) return;
+
+      appendBubble("user", userText);
+      messages.push({ role:"user", text:userText });
+      textInput.value = "";
+      
+      // build payload - FIXED: send "question" instead of "userText"
+      const fd = new FormData();
+      fd.append("sessionId", sessionId);
+      fd.append("messages", JSON.stringify(messages));   // entire history (can trim server-side)
+      fd.append("question", userText);  // CHANGED: from "userText" to "question"
+      if (fileInput.files.length) fd.append("data", fileInput.files[0]);
+
+      appendBubble("assistant", "*…typing…*");
+
+      try {
+        const res   = await fetch(ENDPOINT, { method:"POST", body:fd });
+        if(!res.ok) throw new Error(`Server ${res.status} ${res.statusText}`);
+        const data  = await res.json();
+        
+        // Handle the response format - it's an array with objects containing 'output' and 'answer'
+        let raw;
+        if (Array.isArray(data) && data.length > 0) {
+          // Get the 'output' field from the first item, fallback to 'answer'
+          raw = data[0].output || data[0].answer || "No response received";
+        } else if (data.output) {
+          raw = data.output;
+        } else if (data.answer) {
+          raw = data.answer;
+        } else {
+          raw = "No response received";
+        }
+
+        // remove the temporary "typing" bubble (last child)
+        chatWindow.removeChild(chatWindow.lastChild);
+
+        appendBubble("assistant", raw);
+        messages.push({ role:"assistant", text: raw });
+
+        resetFileInput();
+      } catch (err){
+        chatWindow.removeChild(chatWindow.lastChild);
+        appendBubble("assistant", `**Error:** ${err.message}`);
+      }
+    });
+  </script>
+</body>
+</html>

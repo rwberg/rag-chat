@@ -266,6 +266,14 @@
     const textInput  = document.getElementById("question");
     const form       = document.getElementById("chat-form");
 
+// Enable 'Enter' key to submit, while 'Shift + Enter' creates a new line
+  textInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevents the newline from being added
+      form.requestSubmit(); // Triggers the form's submit event
+      }
+    });
+ 
     let sessionId = sessionStorage.getItem("pkSessionId");
     if (!sessionId) {
       sessionId = crypto.randomUUID();

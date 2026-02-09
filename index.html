@@ -16,25 +16,29 @@
 
     * { box-sizing: border-box; }
 
+    /* ————— Center the entire UI ————— */
     body {
       font-family: Arial, Helvetica, sans-serif;
-      /* Removed the auto margin here to prevent text-only centering */
-      margin: 0; 
-      padding: 20px 0;
-      color: #fff;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+      background-color: #fff;
+      /* Flexbox centering */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
 
-    /* --- NEW WRAPPER TO CENTER EVERYTHING --- */
     .main-wrapper {
-      width: 90%;
-      max-width: 1000px; /* Limits width on very large screens */
-      margin: 0 auto;    /* Centers the entire block */
+      width: 100%;
+      max-width: 1000px; /* Adjust this value to make the UI wider or narrower */
     }
 
     /* ————— Suggestions strip ————— */
     .suggestions-container {
       background: var(--bg);
-      width: 100%; /* Changed from 90% */
+      width: 100%;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px;
@@ -68,7 +72,7 @@
 
     /* ————— Chat window ————— */
     #chat-window {
-      width: 100%; /* Changed from 90% */
+      width: 100%;
       height: 400px;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -111,18 +115,16 @@
     .assistant-response ol { margin: 0.4em 0 0.8em 1.2em; padding: 0; }
     .assistant-response li { margin-bottom: 0.35em; }
 
-    .assistant-response h1,
-    .assistant-response h2,
-    .assistant-response h3,
-    .assistant-response h4 {
+    .assistant-final h1,
+    .assistant-final h2,
+    .assistant-final h3,
+    .assistant-live h1,
+    .assistant-live h2,
+    .assistant-live h3 {
       margin: 0.8em 0 0.35em 0;
       line-height: 1.25;
       font-weight: 650;
     }
-    .assistant-response h1 { font-size: 1.25em; }
-    .assistant-response h2 { font-size: 1.12em; }
-    .assistant-response h3 { font-size: 1.05em; }
-    .assistant-response h4 { font-size: 1.0em; }
 
     /* ————— Typing animation ————— */
     @keyframes blink {
@@ -148,7 +150,7 @@
     /* ————— Input bar ————— */
     form {
       margin-top: 12px;
-      width: 100%; /* Changed from 90% */
+      width: 100%;
     }
 
     .input-group {
@@ -167,7 +169,7 @@
       padding: 4px 8px;
       font-size: 0.9em;
       color: #333;
-      width: fit-content; /* Ensures it stays as a small pill */
+      width: fit-content;
     }
 
     .attachment-pill button {
@@ -192,6 +194,7 @@
       resize: none;
       font-size: 1em;
       color: #333;
+      height: 50px;
     }
 
     #file { display: none; }
@@ -225,7 +228,9 @@
 </head>
 
 <body>
-  <div class="main-wrapper"> <div class="suggestions-container">
+  <div class="main-wrapper">
+
+    <div class="suggestions-container">
       <p>Ask me a question or pick a suggestion –</p>
       <div class="suggestions">
         <div class="suggestion-item">What was the objection regarding actuarial support for the tail factor, and what response did we provide?</div>
@@ -253,9 +258,12 @@
       <input type="file" id="file" accept=".pdf" />
     </form>
 
-  </div> <script>
+  </div>
+
+  <script>
     marked.setOptions({ breaks: true, gfm: true });
 
+    // Suggestion click logic
     document.querySelectorAll('.suggestion-item').forEach(el => {
       el.addEventListener('click', () => {
         const ta = document.getElementById('question');
@@ -264,6 +272,7 @@
       });
     });
 
+    // File handling
     const fileInput = document.getElementById('file');
     const attachBtn = document.querySelector('.attach-button');
     const pill = document.getElementById('attachment-pill');
@@ -285,6 +294,7 @@
       pill.style.display = 'none';
     });
 
+    // Submit on enter
     const textInput = document.getElementById("question");
     const form = document.getElementById("chat-form");
     textInput.addEventListener("keydown", (e) => {
@@ -297,11 +307,8 @@
     const ENDPOINT = "https://supren.app.n8n.cloud/webhook/ca97826c-c2aa-4fb8-a30b-22165a01b93b";
     const chatWindow = document.getElementById("chat-window");
 
-    let sessionId = sessionStorage.getItem("pkSessionId");
-    if (!sessionId) {
-      sessionId = crypto.randomUUID();
-      sessionStorage.setItem("pkSessionId", sessionId);
-    }
+    let sessionId = sessionStorage.getItem("pkSessionId") || crypto.randomUUID();
+    sessionStorage.setItem("pkSessionId", sessionId);
     let messages = [];
 
     function appendUser(text) {
@@ -315,11 +322,7 @@
     function appendTyping() {
       const div = document.createElement("div");
       div.className = "typing";
-      div.innerHTML = `
-        <span class="dot">.</span>
-        <span class="dot">.</span>
-        <span class="dot">.</span>
-      `;
+      div.innerHTML = `<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>`;
       chatWindow.appendChild(div);
       chatWindow.scrollTop = chatWindow.scrollHeight;
       return div;
@@ -328,24 +331,20 @@
     function appendAssistantResponse() {
       const div = document.createElement("div");
       div.className = "assistant-response";
-      div.innerHTML = `
-        <div class="assistant-final"></div>
-        <div class="assistant-live"></div>
-      `;
+      div.innerHTML = `<div class="assistant-final"></div><div class="assistant-live"></div>`;
       chatWindow.appendChild(div);
       chatWindow.scrollTop = chatWindow.scrollHeight;
       return div;
     }
 
     function renderMarkdownInto(el, text) {
-      const rawHtml = marked.parse(text || "");
-      el.innerHTML = DOMPurify.sanitize(rawHtml);
+      el.innerHTML = DOMPurify.sanitize(marked.parse(text || ""));
     }
 
+    // JSON extract for stream
     function extractJsonObjects(buffer) {
       const objects = [];
       let start = -1, depth = 0, inString = false, escape = false;
-
       for (let i = 0; i < buffer.length; i++) {
         const ch = buffer[i];
         if (inString) {
@@ -353,24 +352,11 @@
           if (ch === "\\") { escape = true; continue; }
           if (ch === "\"") { inString = false; continue; }
           continue;
-        } else {
-          if (ch === "\"") { inString = true; continue; }
-        }
-        if (ch === "{") {
-          if (depth === 0) start = i;
-          depth++;
-        } else if (ch === "}") {
-          depth--;
-          if (depth === 0 && start !== -1) {
-            objects.push(buffer.slice(start, i + 1));
-            start = -1;
-          }
-        }
+        } else { if (ch === "\"") { inString = true; continue; } }
+        if (ch === "{") { if (depth === 0) start = i; depth++; } 
+        else if (ch === "}") { depth--; if (depth === 0 && start !== -1) { objects.push(buffer.slice(start, i + 1)); start = -1; } }
       }
-
-      let leftover = "";
-      if (depth > 0 && start !== -1) leftover = buffer.slice(start);
-      return { objects, leftover };
+      return { objects, leftover: (depth > 0 && start !== -1) ? buffer.slice(start) : "" };
     }
 
     function extractAnswer(evt) {
@@ -380,9 +366,7 @@
         if (typeof content === "string" && (content.trim().startsWith('{') || content.trim().startsWith('['))) {
           try { 
             const parsed = JSON.parse(content);
-            if (parsed && typeof parsed === 'object') {
-               return parsed.output || parsed.answer || parsed.result || "";
-            }
+            return parsed.output || parsed.answer || parsed.result || "";
           } catch (_) {}
         }
         return String(content);
@@ -392,56 +376,21 @@
 
     function mergeStreamText(accumulated, incoming) {
       if (!incoming) return accumulated;
-      const a = accumulated || "";
-      const b = incoming || "";
-      if (!a) return b;
-      if (b.startsWith(a)) return b;
-      const maxOverlap = Math.min(a.length, b.length, 120);
+      if (!accumulated) return incoming;
+      if (incoming.startsWith(accumulated)) return incoming;
+      const maxOverlap = Math.min(accumulated.length, incoming.length, 120);
       for (let k = maxOverlap; k > 0; k--) {
-        if (a.endsWith(b.slice(0, k))) return a + b.slice(k);
+        if (accumulated.endsWith(incoming.slice(0, k))) return accumulated + incoming.slice(k);
       }
-      return a + b;
+      return accumulated + incoming;
     }
 
     function splitIntoFinalAndLive(fullText, committedLen) {
-      const t = fullText || "";
-      if (!t) return { finalText: "", liveText: "", committedLen: 0 };
-      const normalized = t.replace(/\r\n/g, "\n");
-      const lastBreak = normalized.lastIndexOf("\n\n");
-      let commitAt = lastBreak;
-      if (commitAt < 0 && normalized.length > 220) {
-        commitAt = normalized.indexOf("\n");
-        if (commitAt < 0) commitAt = Math.min(220, normalized.length);
-      }
-      let newCommitted = committedLen;
-      if (commitAt > 0) newCommitted = Math.max(committedLen, commitAt + 2);
-      const finalText = normalized.slice(0, newCommitted);
-      const liveText  = normalized.slice(newCommitted);
-      return { finalText, liveText, committedLen: newCommitted };
-    }
-
-    let rafScheduled = false;
-    let lastPaint = 0;
-    const PAINT_EVERY_MS = 55;
-
-    function schedulePaint(paintFn) {
-      if (rafScheduled) return;
-      rafScheduled = true;
-      requestAnimationFrame(() => {
-        rafScheduled = false;
-        const now = performance.now();
-        if (now - lastPaint < PAINT_EVERY_MS) {
-          schedulePaint(paintFn);
-          return;
-        }
-        lastPaint = now;
-        paintFn();
-      });
-    }
-
-    function resetFile() {
-      fileInput.value = "";
-      pill.style.display = 'none';
+      const t = (fullText || "").replace(/\r\n/g, "\n");
+      const lastBreak = t.lastIndexOf("\n\n");
+      let commitAt = (lastBreak < 0 && t.length > 220) ? Math.max(t.indexOf("\n"), Math.min(220, t.length)) : lastBreak;
+      let newCommitted = commitAt > 0 ? Math.max(committedLen, commitAt + 2) : committedLen;
+      return { finalText: t.slice(0, newCommitted), liveText: t.slice(newCommitted), committedLen: newCommitted };
     }
 
     form.addEventListener("submit", async (e) => {
@@ -467,13 +416,9 @@
       try {
         const res = await fetch(ENDPOINT, { method: "POST", body: fd });
         if (!res.ok) throw new Error(`Server ${res.status}`);
-        const reader = res.body?.getReader?.();
-        if (!reader) throw new Error("No stream available");
+        const reader = res.body?.getReader();
         const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-        let accumulated = "";
-        let committedLen = 0;
-        let gotAny = false;
+        let buffer = "", accumulated = "", committedLen = 0, gotAny = false;
 
         while (true) {
           const { value, done } = await reader.read();
@@ -482,30 +427,24 @@
           const { objects, leftover } = extractJsonObjects(buffer);
           buffer = leftover;
           for (const objStr of objects) {
-            let evt;
-            try { evt = JSON.parse(objStr); } catch (_) { continue; }
+            let evt; try { evt = JSON.parse(objStr); } catch (_) { continue; }
             const piece = extractAnswer(evt);
             if (!piece) continue;
-            if (!gotAny) {
-              gotAny = true;
-              if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
-            }
+            if (!gotAny) { gotAny = true; if (chatWindow.contains(typing)) chatWindow.removeChild(typing); }
             accumulated = mergeStreamText(accumulated, piece);
             const split = splitIntoFinalAndLive(accumulated, committedLen);
             committedLen = split.committedLen;
-            schedulePaint(() => {
-              if (split.finalText) renderMarkdownInto(finalEl, split.finalText);
-              renderMarkdownInto(liveEl, split.liveText);
-              chatWindow.scrollTop = chatWindow.scrollHeight;
-            });
+            if (split.finalText) renderMarkdownInto(finalEl, split.finalText);
+            renderMarkdownInto(liveEl, split.liveText);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
           }
         }
         if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
-        const stored = (accumulated || "").trim() || "No response received";
+        const stored = accumulated.trim() || "No response received";
         renderMarkdownInto(finalEl, stored);
         liveEl.innerHTML = "";
         messages.push({ role: "assistant", text: stored });
-        resetFile();
+        fileInput.value = ""; pill.style.display = 'none';
       } catch (err) {
         if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
         finalEl.textContent = `Error: ${err.message}`;

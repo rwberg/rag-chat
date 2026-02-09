@@ -16,23 +16,29 @@
 
     * { box-sizing: border-box; }
 
-    /* ————— Center the entire UI ————— */
     body {
       font-family: Arial, Helvetica, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       color: #333;
       background-color: #fff;
-      /* Flexbox centering */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      /* Using a relative body to ensure the absolute wrapper has a reference */
+      position: relative;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
+    /* ————— FIXED POSITIONING WRAPPER ————— */
     .main-wrapper {
-      width: 100%;
-      max-width: 1000px; /* Adjust this value to make the UI wider or narrower */
+      position: absolute;
+      left: 50%;
+      top: 20px; /* Distance from the top of the window */
+      transform: translateX(-50%); /* The "secret sauce" for centering */
+      width: 95%;
+      max-width: 1000px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
     }
 
     /* ————— Suggestions strip ————— */
@@ -115,12 +121,8 @@
     .assistant-response ol { margin: 0.4em 0 0.8em 1.2em; padding: 0; }
     .assistant-response li { margin-bottom: 0.35em; }
 
-    .assistant-final h1,
-    .assistant-final h2,
-    .assistant-final h3,
-    .assistant-live h1,
-    .assistant-live h2,
-    .assistant-live h3 {
+    .assistant-final h1, .assistant-final h2, .assistant-final h3,
+    .assistant-live h1, .assistant-live h2, .assistant-live h3 {
       margin: 0.8em 0 0.35em 0;
       line-height: 1.25;
       font-weight: 650;
@@ -263,7 +265,6 @@
   <script>
     marked.setOptions({ breaks: true, gfm: true });
 
-    // Suggestion click logic
     document.querySelectorAll('.suggestion-item').forEach(el => {
       el.addEventListener('click', () => {
         const ta = document.getElementById('question');
@@ -272,7 +273,6 @@
       });
     });
 
-    // File handling
     const fileInput = document.getElementById('file');
     const attachBtn = document.querySelector('.attach-button');
     const pill = document.getElementById('attachment-pill');
@@ -294,7 +294,6 @@
       pill.style.display = 'none';
     });
 
-    // Submit on enter
     const textInput = document.getElementById("question");
     const form = document.getElementById("chat-form");
     textInput.addEventListener("keydown", (e) => {
@@ -341,7 +340,6 @@
       el.innerHTML = DOMPurify.sanitize(marked.parse(text || ""));
     }
 
-    // JSON extract for stream
     function extractJsonObjects(buffer) {
       const objects = [];
       let start = -1, depth = 0, inString = false, escape = false;

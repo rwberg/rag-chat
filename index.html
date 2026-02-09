@@ -1,565 +1,565 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chatbot Prototype — FilingFixer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot Prototype — FilingFixer</title>
 
-  <style>
-    :root {
-      --user: #333333;
-      --bot: #757575;
-      --bg: #f6f8fa;
-      --fg: #333;
-      --border: #ddd;
-    }
+  <style>
+    :root {
+      --user: #333333;
+      --bot: #757575;
+      --bg: #f6f8fa;
+      --fg: #333;
+      --border: #ddd;
+    }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      margin: 10px auto;
-      color: #fff;
-    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 10px auto;
+      color: #fff;
+    }
 
-    /* ————— Suggestions strip ————— */
-    .suggestions-container {
-      background: var(--bg);
-      width: 90%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 16px;
-    }
+    /* ————— Suggestions strip ————— */
+    .suggestions-container {
+      background: var(--bg);
+      width: 90%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
 
-    .suggestions-container p {
-      margin: 0 0 8px;
-      font-size: 0.9em;
-      color: #333;
-    }
+    .suggestions-container p {
+      margin: 0 0 8px;
+      font-size: 0.9em;
+      color: #333;
+    }
 
-    .suggestions {
-      display: flex;
-      gap: 8px;
-    }
+    .suggestions {
+      display: flex;
+      gap: 8px;
+    }
 
-    .suggestion-item {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      flex: 1;
-      font-size: 0.9em;
-      cursor: pointer;
-      transition: background 0.2s;
-      color: #333;
-    }
+    .suggestion-item {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      flex: 1;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: #333;
+    }
 
-    .suggestion-item:hover { background: #eef0f3; }
+    .suggestion-item:hover { background: #eef0f3; }
 
-    /* ————— Chat window ————— */
-    #chat-window {
-      width: 90%;
-      height: 400px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      overflow-y: auto;
-      background: #fff;
-    }
+    /* ————— Chat window ————— */
+    #chat-window {
+      width: 90%;
+      height: 400px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-y: auto;
+      background: #fff;
+    }
 
-    /* ————— User bubble ————— */
-    .bubble {
-      max-width: 80%;
-      padding: 16px 24px;
-      border-radius: 16px;
-      line-height: 1.2;
-      margin: 12px 0;
-      white-space: normal;
-      font-size: 0.95em;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
+    /* ————— User bubble ————— */
+    .bubble {
+      max-width: 80%;
+      padding: 16px 24px;
+      border-radius: 16px;
+      line-height: 1.2;
+      margin: 12px 0;
+      white-space: normal;
+      font-size: 0.95em;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
 
-    .user {
-      margin-left: auto;
-      background: var(--user);
-      color: #fff;
-      border-bottom-right-radius: 4px;
-      white-space: pre-wrap;
-    }
+    .user {
+      margin-left: auto;
+      background: var(--user);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      white-space: pre-wrap;
+    }
 
-    /* ————— Assistant response (no bubble) ————— */
-    .assistant-response {
-      max-width: 85%;
-      margin: 12px 0;
-      color: #333;
-      line-height: 1.45;
-    }
+    /* ————— Assistant response (no bubble) ————— */
+    .assistant-response {
+      max-width: 85%;
+      margin: 12px 0;
+      color: #333;
+      line-height: 1.45;
+    }
 
-    /* Typography inside assistant */
-    .assistant-response p { margin: 0 0 0.65em 0; }
-    .assistant-response ul,
-    .assistant-response ol { margin: 0.4em 0 0.8em 1.2em; padding: 0; }
-    .assistant-response li { margin-bottom: 0.35em; }
+    /* Typography inside assistant */
+    .assistant-response p { margin: 0 0 0.65em 0; }
+    .assistant-response ul,
+    .assistant-response ol { margin: 0.4em 0 0.8em 1.2em; padding: 0; }
+    .assistant-response li { margin-bottom: 0.35em; }
 
-    /* Header sizing */
-    .assistant-response h1,
-    .assistant-response h2,
-    .assistant-response h3,
-    .assistant-response h4 {
-      margin: 0.8em 0 0.35em 0;
-      line-height: 1.25;
-      font-weight: 650;
-    }
-    .assistant-response h1 { font-size: 1.25em; }
-    .assistant-response h2 { font-size: 1.12em; }
-    .assistant-response h3 { font-size: 1.05em; }
-    .assistant-response h4 { font-size: 1.0em; }
+    /* Header sizing */
+    .assistant-response h1,
+    .assistant-response h2,
+    .assistant-response h3,
+    .assistant-response h4 {
+      margin: 0.8em 0 0.35em 0;
+      line-height: 1.25;
+      font-weight: 650;
+    }
+    .assistant-response h1 { font-size: 1.25em; }
+    .assistant-response h2 { font-size: 1.12em; }
+    .assistant-response h3 { font-size: 1.05em; }
+    .assistant-response h4 { font-size: 1.0em; }
 
-    /* Streaming blocks */
-    .assistant-final { }
-    .assistant-live { }
+    /* Streaming blocks */
+    .assistant-final { }
+    .assistant-live { }
 
-    /* ————— Typing animation ————— */
-    @keyframes blink {
-      0%, 80%, 100% { opacity: 0; }
-      40% { opacity: 1; }
-    }
+    /* ————— Typing animation ————— */
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0; }
+      40% { opacity: 1; }
+    }
 
-    .typing {
-      display: inline-flex;
-      gap: 4px;
-      font-size: 1.4em;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: #333;
-      margin: 8px 0;
-    }
+    .typing {
+      display: inline-flex;
+      gap: 4px;
+      font-size: 1.4em;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #333;
+      margin: 8px 0;
+    }
 
-    .typing .dot { animation: blink 1s infinite; }
-    .typing .dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing .dot:nth-child(3) { animation-delay: 0.4s; }
+    .typing .dot { animation: blink 1s infinite; }
+    .typing .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing .dot:nth-child(3) { animation-delay: 0.4s; }
 
-    /* ————— Input bar with attachment pill ————— */
-    form {
-      margin-top: 12px;
-      width: 90%;
-    }
+    /* ————— Input bar with attachment pill ————— */
+    form {
+      margin-top: 12px;
+      width: 90%;
+    }
 
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-    .attachment-pill {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      background: #eef0f3;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px 8px;
-      font-size: 0.9em;
-      color: #333;
-    }
+    .attachment-pill {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: #eef0f3;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px 8px;
+      font-size: 0.9em;
+      color: #333;
+    }
 
-    .attachment-pill button {
-      background: none;
-      border: none;
-      font-size: 1em;
-      cursor: pointer;
-      color: #666;
-      line-height: 1;
-    }
+    .attachment-pill button {
+      background: none;
+      border: none;
+      font-size: 1em;
+      cursor: pointer;
+      color: #666;
+      line-height: 1;
+    }
 
-    .input-row {
-      position: relative;
-      width: 100%;
-    }
+    .input-row {
+      position: relative;
+      width: 100%;
+    }
 
-    #question {
-      width: 100%;
-      padding: 12px 48px 12px 12px;
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      resize: none;
-      font-size: 1em;
-      color: #333;
-    }
+    #question {
+      width: 100%;
+      padding: 12px 48px 12px 12px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      resize: none;
+      font-size: 1em;
+      color: #333;
+    }
 
-    #file { display: none; }
+    #file { display: none; }
 
-    .attach-button {
-      position: absolute;
-      right: 40px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 1.2em;
-      cursor: pointer;
-    }
+    .attach-button {
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
 
-    .send-button {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 1.4em;
-      cursor: pointer;
-      color: var(--user);
-    }
-  </style>
+    .send-button {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1.4em;
+      cursor: pointer;
+      color: var(--user);
+    }
+  </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.1/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.1/dist/purify.min.js"></script>
 </head>
 
 <body>
-  <div class="suggestions-container">
-    <p>Ask me a question or pick a suggestion –</p>
-    <div class="suggestions">
-      <div class="suggestion-item">What was the objection regarding actuarial support for the tail factor, and what response did we provide?</div>
-      <div class="suggestion-item">Which objections asked for additional or missing exhibits (e.g., updated rate/rule schedules) and how were they addressed?</div>
-      <div class="suggestion-item">Can you show examples of objections about loss trend selections by coverage and our supporting responses?</div>
-      <div class="suggestion-item">Are there specific objection types that tend to recur when filing in Texas?</div>
-    </div>
-  </div>
+  <div class="suggestions-container">
+    <p>Ask me a question or pick a suggestion –</p>
+    <div class="suggestions">
+      <div class="suggestion-item">What was the objection regarding actuarial support for the tail factor, and what response did we provide?</div>
+      <div class="suggestion-item">Which objections asked for additional or missing exhibits (e.g., updated rate/rule schedules) and how were they addressed?</div>
+      <div class="suggestion-item">Can you show examples of objections about loss trend selections by coverage and our supporting responses?</div>
+      <div class="suggestion-item">Are there specific objection types that tend to recur when filing in Texas?</div>
+    </div>
+  </div>
 
-  <div id="chat-window"></div>
+  <div id="chat-window"></div>
 
-  <form id="chat-form">
-    <div class="input-group">
-      <div id="attachment-pill" class="attachment-pill">
-        <span id="file-name-display"></span>
-        <button type="button" id="remove-file" title="Remove attachment">×</button>
-      </div>
+  <form id="chat-form">
+    <div class="input-group">
+      <div id="attachment-pill" class="attachment-pill">
+        <span id="file-name-display"></span>
+        <button type="button" id="remove-file" title="Remove attachment">×</button>
+      </div>
 
-      <div class="input-row">
-        <textarea id="question" placeholder="Type your message here…" required></textarea>
-        <button type="button" class="attach-button" title="Attach PDF">📎</button>
-        <button type="submit" class="send-button" title="Send">➤</button>
-      </div>
-    </div>
-    <input type="file" id="file" accept=".pdf" />
-  </form>
+      <div class="input-row">
+        <textarea id="question" placeholder="Type your message here…" required></textarea>
+        <button type="button" class="attach-button" title="Attach PDF">📎</button>
+        <button type="submit" class="send-button" title="Send">➤</button>
+      </div>
+    </div>
+    <input type="file" id="file" accept=".pdf" />
+  </form>
 
-  <script>
-    marked.setOptions({ breaks: true, gfm: true });
+  <script>
+    marked.setOptions({ breaks: true, gfm: true });
 
-    // Suggestion → textarea
-    document.querySelectorAll('.suggestion-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const ta = document.getElementById('question');
-        ta.value = el.textContent;
-        ta.focus();
-      });
-    });
+    // Suggestion → textarea
+    document.querySelectorAll('.suggestion-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const ta = document.getElementById('question');
+        ta.value = el.textContent;
+        ta.focus();
+      });
+    });
 
-    // File attachment logic
-    const fileInput = document.getElementById('file');
-    const attachBtn = document.querySelector('.attach-button');
-    const pill = document.getElementById('attachment-pill');
-    const fileNameSpan = document.getElementById('file-name-display');
-    const removeBtn = document.getElementById('remove-file');
+    // File attachment logic
+    const fileInput = document.getElementById('file');
+    const attachBtn = document.querySelector('.attach-button');
+    const pill = document.getElementById('attachment-pill');
+    const fileNameSpan = document.getElementById('file-name-display');
+    const removeBtn = document.getElementById('remove-file');
 
-    attachBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', () => {
-      const name = fileInput.files[0]?.name || '';
-      if (name) {
-        fileNameSpan.textContent = name;
-        pill.style.display = 'flex';
-      } else {
-        pill.style.display = 'none';
-      }
-    });
-    removeBtn.addEventListener('click', () => {
-      fileInput.value = '';
-      pill.style.display = 'none';
-    });
+    attachBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      const name = fileInput.files[0]?.name || '';
+      if (name) {
+        fileNameSpan.textContent = name;
+        pill.style.display = 'flex';
+      } else {
+        pill.style.display = 'none';
+      }
+    });
+    removeBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      pill.style.display = 'none';
+    });
 
-    // Enter submits, Shift+Enter inserts newline
-    const textInput = document.getElementById("question");
-    const form = document.getElementById("chat-form");
-    textInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        form.requestSubmit();
-      }
-    });
+    // Enter submits, Shift+Enter inserts newline
+    const textInput = document.getElementById("question");
+    const form = document.getElementById("chat-form");
+    textInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
 
-    // Endpoint
-    const ENDPOINT = "https://supren.app.n8n.cloud/webhook/ca97826c-c2aa-4fb8-a30b-22165a01b93b";
-    const chatWindow = document.getElementById("chat-window");
+    // Endpoint
+    const ENDPOINT = "https://supren.app.n8n.cloud/webhook/ca97826c-c2aa-4fb8-a30b-22165a01b93b";
+    const chatWindow = document.getElementById("chat-window");
 
-    let sessionId = sessionStorage.getItem("pkSessionId");
-    if (!sessionId) {
-      sessionId = crypto.randomUUID();
-      sessionStorage.setItem("pkSessionId", sessionId);
-    }
-    let messages = [];
+    let sessionId = sessionStorage.getItem("pkSessionId");
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      sessionStorage.setItem("pkSessionId", sessionId);
+    }
+    let messages = [];
 
-    function appendUser(text) {
-      const div = document.createElement("div");
-      div.className = "bubble user";
-      div.textContent = text || "";
-      chatWindow.appendChild(div);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
+    function appendUser(text) {
+      const div = document.createElement("div");
+      div.className = "bubble user";
+      div.textContent = text || "";
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
 
-    function appendTyping() {
-      const div = document.createElement("div");
-      div.className = "typing";
-      div.innerHTML = `
-        <span class="dot">.</span>
-        <span class="dot">.</span>
-        <span class="dot">.</span>
-      `;
-      chatWindow.appendChild(div);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      return div;
-    }
+    function appendTyping() {
+      const div = document.createElement("div");
+      div.className = "typing";
+      div.innerHTML = `
+        <span class="dot">.</span>
+        <span class="dot">.</span>
+        <span class="dot">.</span>
+      `;
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return div;
+    }
 
-    function appendAssistantResponse() {
-      const div = document.createElement("div");
-      div.className = "assistant-response";
-      div.innerHTML = `
-        <div class="assistant-final"></div>
-        <div class="assistant-live"></div>
-      `;
-      chatWindow.appendChild(div);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      return div;
-    }
+    function appendAssistantResponse() {
+      const div = document.createElement("div");
+      div.className = "assistant-response";
+      div.innerHTML = `
+        <div class="assistant-final"></div>
+        <div class="assistant-live"></div>
+      `;
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return div;
+    }
 
-    /**
-     * Render markdown -> HTML.
-     * Fix the "leading bullet before some headings" by:
-     *  1) Converting any list item that contains ONLY a heading into a heading (and removing the list wrapper if empty)
-     *  2) Promoting a "heading-like" first bullet into H2 (your existing behavior)
-     */
+    /**
+     * Render markdown -> HTML.
+     * Fix the "leading bullet before some headings" by:
+     *  1) Converting any list item that contains ONLY a heading into a heading (and removing the list wrapper if empty)
+     *  2) Promoting a "heading-like" first bullet into H2 (your existing behavior)
+     */
 
-   function renderMarkdownInto(el, text) {
-  // Parse the markdown into HTML
-      const rawHtml = marked.parse(text || "");
-  
-  // Sanitize the HTML and inject it into the element
-      el.innerHTML = DOMPurify.sanitize(rawHtml);
-   }
+   function renderMarkdownInto(el, text) {
+  // Parse the markdown into HTML
+      const rawHtml = marked.parse(text || "");
+  
+  // Sanitize the HTML and inject it into the element
+      el.innerHTML = DOMPurify.sanitize(rawHtml);
+   }
 
-    // Extract complete JSON objects from concatenated stream: {"type":"begin"...} {"type":"item"...}
-    function extractJsonObjects(buffer) {
-      const objects = [];
-      let start = -1, depth = 0, inString = false, escape = false;
+    // Extract complete JSON objects from concatenated stream: {"type":"begin"...} {"type":"item"...}
+    function extractJsonObjects(buffer) {
+      const objects = [];
+      let start = -1, depth = 0, inString = false, escape = false;
 
-      for (let i = 0; i < buffer.length; i++) {
-        const ch = buffer[i];
+      for (let i = 0; i < buffer.length; i++) {
+        const ch = buffer[i];
 
-        if (inString) {
-          if (escape) { escape = false; continue; }
-          if (ch === "\\") { escape = true; continue; }
-          if (ch === "\"") { inString = false; continue; }
-          continue;
-        } else {
-          if (ch === "\"") { inString = true; continue; }
-        }
+        if (inString) {
+          if (escape) { escape = false; continue; }
+          if (ch === "\\") { escape = true; continue; }
+          if (ch === "\"") { inString = false; continue; }
+          continue;
+        } else {
+          if (ch === "\"") { inString = true; continue; }
+        }
 
-        if (ch === "{") {
-          if (depth === 0) start = i;
-          depth++;
-        } else if (ch === "}") {
-          depth--;
-          if (depth === 0 && start !== -1) {
-            objects.push(buffer.slice(start, i + 1));
-            start = -1;
-          }
-        }
-      }
+        if (ch === "{") {
+          if (depth === 0) start = i;
+          depth++;
+        } else if (ch === "}") {
+          depth--;
+          if (depth === 0 && start !== -1) {
+            objects.push(buffer.slice(start, i + 1));
+            start = -1;
+          }
+        }
+      }
 
-      let leftover = "";
-      if (depth > 0 && start !== -1) leftover = buffer.slice(start);
-      return { objects, leftover };
-    }
+      let leftover = "";
+      if (depth > 0 && start !== -1) leftover = buffer.slice(start);
+      return { objects, leftover };
+    }
 
-    function extractAnswer(evt) {
-  if (!evt || typeof evt !== "object") return "";
-  
-  // If this is a standard n8n stream item
-  if (evt.type === "item" && evt.content != null) {
-    let content = evt.content;
-    
-    // Only try to parse if it looks like a JSON object/array (starts with { or [)
-    if (typeof content === "string" && (content.trim().startsWith('{') || content.trim().startsWith('['))) {
-      try { 
-        const parsed = JSON.parse(content);
-        if (parsed && typeof parsed === 'object') {
-           return parsed.output || parsed.answer || parsed.result || "";
-        }
-      } catch (_) {
-        // Not valid JSON, just treat as string
-      }
-    }
-    
-    // Return the content as a string, even if it's a number
-    return String(content);
-  }
-  
-  // Fallback for non-item events (like final responses)
-  return String(evt.output || evt.answer || evt.result || "");
+    function extractAnswer(evt) {
+  if (!evt || typeof evt !== "object") return "";
+  
+  // If this is a standard n8n stream item
+  if (evt.type === "item" && evt.content != null) {
+    let content = evt.content;
+    
+    // Only try to parse if it looks like a JSON object/array (starts with { or [)
+    if (typeof content === "string" && (content.trim().startsWith('{') || content.trim().startsWith('['))) {
+      try { 
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed === 'object') {
+           return parsed.output || parsed.answer || parsed.result || "";
+        }
+      } catch (_) {
+        // Not valid JSON, just treat as string
+      }
+    }
+    
+    // Return the content as a string, even if it's a number
+    return String(content);
+  }
+  
+  // Fallback for non-item events (like final responses)
+  return String(evt.output || evt.answer || evt.result || "");
 }
 
-    // Heuristic merge: sometimes full text, sometimes delta chunks
-    function mergeStreamText(accumulated, incoming) {
-      if (!incoming) return accumulated;
-      const a = accumulated || "";
-      const b = incoming || "";
-      if (!a) return b;
+    // Heuristic merge: sometimes full text, sometimes delta chunks
+    function mergeStreamText(accumulated, incoming) {
+      if (!incoming) return accumulated;
+      const a = accumulated || "";
+      const b = incoming || "";
+      if (!a) return b;
 
-      if (b.startsWith(a)) return b;
+      if (b.startsWith(a)) return b;
 
-      const maxOverlap = Math.min(a.length, b.length, 120);
-      for (let k = maxOverlap; k > 0; k--) {
-        if (a.endsWith(b.slice(0, k))) return a + b.slice(k);
-      }
-      return a + b;
-    }
+      const maxOverlap = Math.min(a.length, b.length, 120);
+      for (let k = maxOverlap; k > 0; k--) {
+        if (a.endsWith(b.slice(0, k))) return a + b.slice(k);
+      }
+      return a + b;
+    }
 
-    // Commit completed paragraphs into "final" so they stop re-rendering
-    function splitIntoFinalAndLive(fullText, committedLen) {
-      const t = fullText || "";
-      if (!t) return { finalText: "", liveText: "", committedLen: 0 };
+    // Commit completed paragraphs into "final" so they stop re-rendering
+    function splitIntoFinalAndLive(fullText, committedLen) {
+      const t = fullText || "";
+      if (!t) return { finalText: "", liveText: "", committedLen: 0 };
 
-      const normalized = t.replace(/\r\n/g, "\n");
-      const lastBreak = normalized.lastIndexOf("\n\n");
+      const normalized = t.replace(/\r\n/g, "\n");
+      const lastBreak = normalized.lastIndexOf("\n\n");
 
-      let commitAt = lastBreak;
-      if (commitAt < 0 && normalized.length > 220) {
-        commitAt = normalized.indexOf("\n");
-        if (commitAt < 0) commitAt = Math.min(220, normalized.length);
-      }
+      let commitAt = lastBreak;
+      if (commitAt < 0 && normalized.length > 220) {
+        commitAt = normalized.indexOf("\n");
+        if (commitAt < 0) commitAt = Math.min(220, normalized.length);
+      }
 
-      let newCommitted = committedLen;
-      if (commitAt > 0) newCommitted = Math.max(committedLen, commitAt + 2);
+      let newCommitted = committedLen;
+      if (commitAt > 0) newCommitted = Math.max(committedLen, commitAt + 2);
 
-      const finalText = normalized.slice(0, newCommitted);
-      const liveText  = normalized.slice(newCommitted);
+      const finalText = normalized.slice(0, newCommitted);
+      const liveText  = normalized.slice(newCommitted);
 
-      return { finalText, liveText, committedLen: newCommitted };
-    }
+      return { finalText, liveText, committedLen: newCommitted };
+    }
 
-    // Streaming paint throttle
-    let rafScheduled = false;
-    let lastPaint = 0;
-    const PAINT_EVERY_MS = 55; // ~18fps
+    // Streaming paint throttle
+    let rafScheduled = false;
+    let lastPaint = 0;
+    const PAINT_EVERY_MS = 55; // ~18fps
 
-    function schedulePaint(paintFn) {
-      if (rafScheduled) return;
-      rafScheduled = true;
+    function schedulePaint(paintFn) {
+      if (rafScheduled) return;
+      rafScheduled = true;
 
-      requestAnimationFrame(() => {
-        rafScheduled = false;
+      requestAnimationFrame(() => {
+        rafScheduled = false;
 
-        const now = performance.now();
-        if (now - lastPaint < PAINT_EVERY_MS) {
-          schedulePaint(paintFn);
-          return;
-        }
-        lastPaint = now;
-        paintFn();
-      });
-    }
+        const now = performance.now();
+        if (now - lastPaint < PAINT_EVERY_MS) {
+          schedulePaint(paintFn);
+          return;
+        }
+        lastPaint = now;
+        paintFn();
+      });
+    }
 
-    function resetFile() {
-      fileInput.value = "";
-      pill.style.display = 'none';
-    }
+    function resetFile() {
+      fileInput.value = "";
+      pill.style.display = 'none';
+    }
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const userText = textInput.value.trim();
-      if (!userText) return;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const userText = textInput.value.trim();
+      if (!userText) return;
 
-      appendUser(userText);
-      messages.push({ role: "user", text: userText });
-      textInput.value = "";
+      appendUser(userText);
+      messages.push({ role: "user", text: userText });
+      textInput.value = "";
 
-      const fd = new FormData();
-      fd.append("sessionId", sessionId);
-      fd.append("messages", JSON.stringify(messages));
-      fd.append("question", userText);
-      if (fileInput.files.length) fd.append("data", fileInput.files[0]);
+      const fd = new FormData();
+      fd.append("sessionId", sessionId);
+      fd.append("messages", JSON.stringify(messages));
+      fd.append("question", userText);
+      if (fileInput.files.length) fd.append("data", fileInput.files[0]);
 
-      const typing = appendTyping();
-      const assistant = appendAssistantResponse();
-      const finalEl = assistant.querySelector(".assistant-final");
-      const liveEl  = assistant.querySelector(".assistant-live");
+      const typing = appendTyping();
+      const assistant = appendAssistantResponse();
+      const finalEl = assistant.querySelector(".assistant-final");
+      const liveEl  = assistant.querySelector(".assistant-live");
 
-      try {
-        const res = await fetch(ENDPOINT, { method: "POST", body: fd });
-        if (!res.ok) throw new Error(`Server ${res.status}`);
+      try {
+        const res = await fetch(ENDPOINT, { method: "POST", body: fd });
+        if (!res.ok) throw new Error(`Server ${res.status}`);
 
-        const reader = res.body?.getReader?.();
-        if (!reader) throw new Error("No stream available");
+        const reader = res.body?.getReader?.();
+        if (!reader) throw new Error("No stream available");
 
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
 
-        let accumulated = "";
-        let committedLen = 0;
-        let gotAny = false;
+        let accumulated = "";
+        let committedLen = 0;
+        let gotAny = false;
 
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+          buffer += decoder.decode(value, { stream: true });
 
-          const { objects, leftover } = extractJsonObjects(buffer);
-          buffer = leftover;
+          const { objects, leftover } = extractJsonObjects(buffer);
+          buffer = leftover;
 
-          for (const objStr of objects) {
-            let evt;
-            try { evt = JSON.parse(objStr); } catch (_) { continue; }
+          for (const objStr of objects) {
+            let evt;
+            try { evt = JSON.parse(objStr); } catch (_) { continue; }
 
-            const piece = extractAnswer(evt);
-            if (!piece) continue;
+            const piece = extractAnswer(evt);
+            if (!piece) continue;
 
-            if (!gotAny) {
-              gotAny = true;
-              if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
-            }
+            if (!gotAny) {
+              gotAny = true;
+              if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
+            }
 
-            accumulated = mergeStreamText(accumulated, piece);
+            accumulated = mergeStreamText(accumulated, piece);
 
-            const split = splitIntoFinalAndLive(accumulated, committedLen);
-            committedLen = split.committedLen;
+            const split = splitIntoFinalAndLive(accumulated, committedLen);
+            committedLen = split.committedLen;
 
-            schedulePaint(() => {
-              if (split.finalText) renderMarkdownInto(finalEl, split.finalText);
-              renderMarkdownInto(liveEl, split.liveText);
-              chatWindow.scrollTop = chatWindow.scrollHeight;
-            });
-          }
-        }
+            schedulePaint(() => {
+              if (split.finalText) renderMarkdownInto(finalEl, split.finalText);
+              renderMarkdownInto(liveEl, split.liveText);
+              chatWindow.scrollTop = chatWindow.scrollHeight;
+            });
+          }
+        }
 
-        if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
+        if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
 
-        const stored = (accumulated || "").trim() || "No response received";
-        renderMarkdownInto(finalEl, stored);
-        liveEl.innerHTML = "";
-        messages.push({ role: "assistant", text: stored });
-        resetFile();
+        const stored = (accumulated || "").trim() || "No response received";
+        renderMarkdownInto(finalEl, stored);
+        liveEl.innerHTML = "";
+        messages.push({ role: "assistant", text: stored });
+        resetFile();
 
-      } catch (err) {
-        if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
-        finalEl.textContent = `Error: ${err.message}`;
-      }
-    });
-  </script>
+      } catch (err) {
+        if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
+        finalEl.textContent = `Error: ${err.message}`;
+      }
+    });
+  </script>
 </body>
 </html>

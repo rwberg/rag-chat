@@ -18,14 +18,23 @@
 
     body {
       font-family: Arial, Helvetica, sans-serif;
-      margin: 30px auto;
+      /* Removed the auto margin here to prevent text-only centering */
+      margin: 0; 
+      padding: 20px 0;
       color: #fff;
+    }
+
+    /* --- NEW WRAPPER TO CENTER EVERYTHING --- */
+    .main-wrapper {
+      width: 90%;
+      max-width: 1000px; /* Limits width on very large screens */
+      margin: 0 auto;    /* Centers the entire block */
     }
 
     /* ————— Suggestions strip ————— */
     .suggestions-container {
       background: var(--bg);
-      width: 90%;
+      width: 100%; /* Changed from 90% */
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px;
@@ -59,7 +68,7 @@
 
     /* ————— Chat window ————— */
     #chat-window {
-      width: 90%;
+      width: 100%; /* Changed from 90% */
       height: 400px;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -89,7 +98,7 @@
       white-space: pre-wrap;
     }
 
-    /* ————— Assistant response (no bubble) ————— */
+    /* ————— Assistant response ————— */
     .assistant-response {
       max-width: 85%;
       margin: 12px 0;
@@ -97,13 +106,11 @@
       line-height: 1.45;
     }
 
-    /* Typography inside assistant */
     .assistant-response p { margin: 0 0 0.65em 0; }
     .assistant-response ul,
     .assistant-response ol { margin: 0.4em 0 0.8em 1.2em; padding: 0; }
     .assistant-response li { margin-bottom: 0.35em; }
 
-    /* Header sizing */
     .assistant-response h1,
     .assistant-response h2,
     .assistant-response h3,
@@ -116,10 +123,6 @@
     .assistant-response h2 { font-size: 1.12em; }
     .assistant-response h3 { font-size: 1.05em; }
     .assistant-response h4 { font-size: 1.0em; }
-
-    /* Streaming blocks */
-    .assistant-final { }
-    .assistant-live { }
 
     /* ————— Typing animation ————— */
     @keyframes blink {
@@ -142,10 +145,10 @@
     .typing .dot:nth-child(2) { animation-delay: 0.2s; }
     .typing .dot:nth-child(3) { animation-delay: 0.4s; }
 
-    /* ————— Input bar with attachment pill ————— */
+    /* ————— Input bar ————— */
     form {
       margin-top: 12px;
-      width: 90%;
+      width: 100%; /* Changed from 90% */
     }
 
     .input-group {
@@ -164,6 +167,7 @@
       padding: 4px 8px;
       font-size: 0.9em;
       color: #333;
+      width: fit-content; /* Ensures it stays as a small pill */
     }
 
     .attachment-pill button {
@@ -221,38 +225,37 @@
 </head>
 
 <body>
-  <div class="suggestions-container">
-    <p>Ask me a question or pick a suggestion –</p>
-    <div class="suggestions">
-      <div class="suggestion-item">What was the objection regarding actuarial support for the tail factor, and what response did we provide?</div>
-      <div class="suggestion-item">Which objections asked for additional or missing exhibits (e.g., updated rate/rule schedules) and how were they addressed?</div>
-      <div class="suggestion-item">Can you show examples of objections about loss trend selections by coverage and our supporting responses?</div>
-      <div class="suggestion-item">Are there specific objection types that tend to recur when filing in Texas?</div>
-    </div>
-  </div>
-
-  <div id="chat-window"></div>
-
-  <form id="chat-form">
-    <div class="input-group">
-      <div id="attachment-pill" class="attachment-pill">
-        <span id="file-name-display"></span>
-        <button type="button" id="remove-file" title="Remove attachment">×</button>
-      </div>
-
-      <div class="input-row">
-        <textarea id="question" placeholder="Type your message here…" required></textarea>
-        <button type="button" class="attach-button" title="Attach PDF">📎</button>
-        <button type="submit" class="send-button" title="Send">➤</button>
+  <div class="main-wrapper"> <div class="suggestions-container">
+      <p>Ask me a question or pick a suggestion –</p>
+      <div class="suggestions">
+        <div class="suggestion-item">What was the objection regarding actuarial support for the tail factor, and what response did we provide?</div>
+        <div class="suggestion-item">Which objections asked for additional or missing exhibits (e.g., updated rate/rule schedules) and how were they addressed?</div>
+        <div class="suggestion-item">Can you show examples of objections about loss trend selections by coverage and our supporting responses?</div>
+        <div class="suggestion-item">Are there specific objection types that tend to recur when filing in Texas?</div>
       </div>
     </div>
-    <input type="file" id="file" accept=".pdf" />
-  </form>
 
-  <script>
+    <div id="chat-window"></div>
+
+    <form id="chat-form">
+      <div class="input-group">
+        <div id="attachment-pill" class="attachment-pill">
+          <span id="file-name-display"></span>
+          <button type="button" id="remove-file" title="Remove attachment">×</button>
+        </div>
+
+        <div class="input-row">
+          <textarea id="question" placeholder="Type your message here…" required></textarea>
+          <button type="button" class="attach-button" title="Attach PDF">📎</button>
+          <button type="submit" class="send-button" title="Send">➤</button>
+        </div>
+      </div>
+      <input type="file" id="file" accept=".pdf" />
+    </form>
+
+  </div> <script>
     marked.setOptions({ breaks: true, gfm: true });
 
-    // Suggestion → textarea
     document.querySelectorAll('.suggestion-item').forEach(el => {
       el.addEventListener('click', () => {
         const ta = document.getElementById('question');
@@ -261,7 +264,6 @@
       });
     });
 
-    // File attachment logic
     const fileInput = document.getElementById('file');
     const attachBtn = document.querySelector('.attach-button');
     const pill = document.getElementById('attachment-pill');
@@ -283,7 +285,6 @@
       pill.style.display = 'none';
     });
 
-    // Enter submits, Shift+Enter inserts newline
     const textInput = document.getElementById("question");
     const form = document.getElementById("chat-form");
     textInput.addEventListener("keydown", (e) => {
@@ -293,7 +294,6 @@
       }
     });
 
-    // Endpoint
     const ENDPOINT = "https://supren.app.n8n.cloud/webhook/ca97826c-c2aa-4fb8-a30b-22165a01b93b";
     const chatWindow = document.getElementById("chat-window");
 
@@ -337,29 +337,17 @@
       return div;
     }
 
-    /**
-     * Render markdown -> HTML.
-     * Fix the "leading bullet before some headings" by:
-     *  1) Converting any list item that contains ONLY a heading into a heading (and removing the list wrapper if empty)
-     *  2) Promoting a "heading-like" first bullet into H2 (your existing behavior)
-     */
-
-   function renderMarkdownInto(el, text) {
-  // Parse the markdown into HTML
+    function renderMarkdownInto(el, text) {
       const rawHtml = marked.parse(text || "");
-  
-  // Sanitize the HTML and inject it into the element
       el.innerHTML = DOMPurify.sanitize(rawHtml);
-   }
+    }
 
-    // Extract complete JSON objects from concatenated stream: {"type":"begin"...} {"type":"item"...}
     function extractJsonObjects(buffer) {
       const objects = [];
       let start = -1, depth = 0, inString = false, escape = false;
 
       for (let i = 0; i < buffer.length; i++) {
         const ch = buffer[i];
-
         if (inString) {
           if (escape) { escape = false; continue; }
           if (ch === "\\") { escape = true; continue; }
@@ -368,7 +356,6 @@
         } else {
           if (ch === "\"") { inString = true; continue; }
         }
-
         if (ch === "{") {
           if (depth === 0) start = i;
           depth++;
@@ -387,41 +374,28 @@
     }
 
     function extractAnswer(evt) {
-  if (!evt || typeof evt !== "object") return "";
-  
-  // If this is a standard n8n stream item
-  if (evt.type === "item" && evt.content != null) {
-    let content = evt.content;
-    
-    // Only try to parse if it looks like a JSON object/array (starts with { or [)
-    if (typeof content === "string" && (content.trim().startsWith('{') || content.trim().startsWith('['))) {
-      try { 
-        const parsed = JSON.parse(content);
-        if (parsed && typeof parsed === 'object') {
-           return parsed.output || parsed.answer || parsed.result || "";
+      if (!evt || typeof evt !== "object") return "";
+      if (evt.type === "item" && evt.content != null) {
+        let content = evt.content;
+        if (typeof content === "string" && (content.trim().startsWith('{') || content.trim().startsWith('['))) {
+          try { 
+            const parsed = JSON.parse(content);
+            if (parsed && typeof parsed === 'object') {
+               return parsed.output || parsed.answer || parsed.result || "";
+            }
+          } catch (_) {}
         }
-      } catch (_) {
-        // Not valid JSON, just treat as string
+        return String(content);
       }
+      return String(evt.output || evt.answer || evt.result || "");
     }
-    
-    // Return the content as a string, even if it's a number
-    return String(content);
-  }
-  
-  // Fallback for non-item events (like final responses)
-  return String(evt.output || evt.answer || evt.result || "");
-}
 
-    // Heuristic merge: sometimes full text, sometimes delta chunks
     function mergeStreamText(accumulated, incoming) {
       if (!incoming) return accumulated;
       const a = accumulated || "";
       const b = incoming || "";
       if (!a) return b;
-
       if (b.startsWith(a)) return b;
-
       const maxOverlap = Math.min(a.length, b.length, 120);
       for (let k = maxOverlap; k > 0; k--) {
         if (a.endsWith(b.slice(0, k))) return a + b.slice(k);
@@ -429,41 +403,32 @@
       return a + b;
     }
 
-    // Commit completed paragraphs into "final" so they stop re-rendering
     function splitIntoFinalAndLive(fullText, committedLen) {
       const t = fullText || "";
       if (!t) return { finalText: "", liveText: "", committedLen: 0 };
-
       const normalized = t.replace(/\r\n/g, "\n");
       const lastBreak = normalized.lastIndexOf("\n\n");
-
       let commitAt = lastBreak;
       if (commitAt < 0 && normalized.length > 220) {
         commitAt = normalized.indexOf("\n");
         if (commitAt < 0) commitAt = Math.min(220, normalized.length);
       }
-
       let newCommitted = committedLen;
       if (commitAt > 0) newCommitted = Math.max(committedLen, commitAt + 2);
-
       const finalText = normalized.slice(0, newCommitted);
       const liveText  = normalized.slice(newCommitted);
-
       return { finalText, liveText, committedLen: newCommitted };
     }
 
-    // Streaming paint throttle
     let rafScheduled = false;
     let lastPaint = 0;
-    const PAINT_EVERY_MS = 55; // ~18fps
+    const PAINT_EVERY_MS = 55;
 
     function schedulePaint(paintFn) {
       if (rafScheduled) return;
       rafScheduled = true;
-
       requestAnimationFrame(() => {
         rafScheduled = false;
-
         const now = performance.now();
         if (now - lastPaint < PAINT_EVERY_MS) {
           schedulePaint(paintFn);
@@ -502,13 +467,10 @@
       try {
         const res = await fetch(ENDPOINT, { method: "POST", body: fd });
         if (!res.ok) throw new Error(`Server ${res.status}`);
-
         const reader = res.body?.getReader?.();
         if (!reader) throw new Error("No stream available");
-
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
-
         let accumulated = "";
         let committedLen = 0;
         let gotAny = false;
@@ -516,29 +478,21 @@
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-
           buffer += decoder.decode(value, { stream: true });
-
           const { objects, leftover } = extractJsonObjects(buffer);
           buffer = leftover;
-
           for (const objStr of objects) {
             let evt;
             try { evt = JSON.parse(objStr); } catch (_) { continue; }
-
             const piece = extractAnswer(evt);
             if (!piece) continue;
-
             if (!gotAny) {
               gotAny = true;
               if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
             }
-
             accumulated = mergeStreamText(accumulated, piece);
-
             const split = splitIntoFinalAndLive(accumulated, committedLen);
             committedLen = split.committedLen;
-
             schedulePaint(() => {
               if (split.finalText) renderMarkdownInto(finalEl, split.finalText);
               renderMarkdownInto(liveEl, split.liveText);
@@ -546,15 +500,12 @@
             });
           }
         }
-
         if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
-
         const stored = (accumulated || "").trim() || "No response received";
         renderMarkdownInto(finalEl, stored);
         liveEl.innerHTML = "";
         messages.push({ role: "assistant", text: stored });
         resetFile();
-
       } catch (err) {
         if (chatWindow.contains(typing)) chatWindow.removeChild(typing);
         finalEl.textContent = `Error: ${err.message}`;

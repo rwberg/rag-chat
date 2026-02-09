@@ -22,6 +22,12 @@
       color: #fff;
     }
 
+    /* ————— MASTER CONTAINER ————— */
+    .ui-container {
+      margin-left: 32px; /* This moves suggestions, chat, and input all at once */
+      width: 90%;        /* Keeps everything consistent in width */
+    }
+    
     /* ————— Suggestions strip ————— */
     .suggestions-container {
       background: var(--bg);
@@ -30,7 +36,6 @@
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 16px;
-      margin-left: 32px;
     }
 
     .suggestions-container p {
@@ -66,8 +71,7 @@
       border-radius: 8px;
       padding: 16px;
       overflow-y: auto;
-      background: #fff;
-      margin-left: 32px;
+      background: #fff;      
     }
 
     /* ————— User bubble ————— */
@@ -89,7 +93,6 @@
       color: #fff;
       border-bottom-right-radius: 4px;
       white-space: pre-wrap;
-      margin-left: 32px;
     }
 
     /* ————— Assistant response (no bubble) ————— */
